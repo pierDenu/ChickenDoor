@@ -9,7 +9,7 @@
 
 ## Demo
 
-[Переглянути відео демонстрації](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+[Переглянути відео демонстрації](https://youtube.com/shorts/dDH50N-pQVI)
 
 
 ## Мета проєкту
