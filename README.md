@@ -6,6 +6,9 @@
   <img src="assets/photo_2_2026-01-20_17-13-52.jpg" alt="Механіка хвіртки" width="48%">
   <img src="assets/photo_1_2026-01-20_17-13-52.jpg" alt="Механіка хвіртки" width="48%">
 </p>
+## Demo
+
+[Переглянути відео демонстрації](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
 
 ## Мета проєкту
