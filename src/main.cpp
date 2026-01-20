@@ -6,34 +6,31 @@
 
 RTC_DS3231 rtc;
 
-const int interruptPin = 2;  // Підключений до SQW/INT DS3231
+const int interruptPin = 2;  
 const int solenoidPin = 9;
 const int buttonPin = 3;
 DateTime alarmTime;
 
-// Розклад пробудження залежно від дня тижня (0 - неділя, 1 - понеділок ... 6 - субота)
+
 const bool sleepMode = false;
 
 bool alarmTriggered = false;
 
-const int maxRecords = 250;  // приблизно — залишимо запас
-const int eepromStart = 2;   // після лічильника (0 і 1 байт)
+const int maxRecords = 250;  
+const int eepromStart = 2;   
 const int solenoidTime = 5000;
 
-// Зчитуємо лічильник записів з EEPROM
 uint16_t readRecordCount() {
     uint16_t count;
     EEPROM.get(0, count);
-    if (count > maxRecords) count = 0; // обнулити некоректне значення
+    if (count > maxRecords) count = 0; 
     return count;
 }
 
-// Зберігаємо новий лічильник у EEPROM
 void writeRecordCount(uint16_t count) {
     EEPROM.put(0, count);
 }
 
-// Записуємо дату-час у EEPROM
 void saveTriggerTime(const DateTime& dt, uint16_t index) {
     uint32_t timestamp = dt.unixtime();
     int addr = eepromStart + index * sizeof(uint32_t);
@@ -41,7 +38,6 @@ void saveTriggerTime(const DateTime& dt, uint16_t index) {
     Serial.print("Записано у EEPROM за індексом "); Serial.println(index);
 }
 
-// Читаємо запис із EEPROM за індексом
 DateTime readTriggerTime(uint16_t index) {
     uint32_t timestamp;
     int addr = eepromStart + index * sizeof(uint32_t);
@@ -98,7 +94,7 @@ void listLog() {
 }
 
 int getSecondsForDay(int dayOfYear) {
-    const int jun22 = 173; // 22 червня
+    const int jun22 = 173; 
     const int minMinutes = 30;
     const int maxMinutes = 60;
     int daysToJun22 = abs(dayOfYear - jun22);
@@ -109,12 +105,12 @@ int getSecondsForDay(int dayOfYear) {
 void setNextAlarm() {
   int dayNumber;
   DateTime now = rtc.now();
-  DateTime nextDay = getNextDay(now);
+  DateTime nextDay = getNextDay()    // для Sleep-режиму – знову спимоnow);
   SunriseTime time  = getSunrise(nextDay.month(), nextDay.day(), &dayNumber);
   alarmTime = DateTime(nextDay.year(), nextDay.month(), nextDay.day(), time.hour, time.minute) + TimeSpan(getSecondsForDay(dayNumber));
   rtc.clearAlarm(1);
   rtc.setAlarm1(
-    alarmTime, DS3231_A1_Hour // Будильник спрацьовує в заданий час наступного дня
+    alarmTime, DS3231_A1_Hour 
   );
 
 }
@@ -137,15 +133,14 @@ void activateSolenoid() {
     saveTriggerTime(now, count);
 
     count++;
-    if (count >= maxRecords) count = 0;  // кільцевий буфер
+    if (count >= maxRecords) count = 0;  
     writeRecordCount(count);   
 }
 
 DateTime getLastTriggerTime() {
     uint16_t count = readRecordCount();
     if (count == 0 && EEPROM.read(eepromStart) == 0xFF) {
-        // EEPROM is empty
-        return DateTime((uint32_t)0);  // Return default datetime (1970)
+        return DateTime((uint32_t)0);  
     }
     uint16_t lastIndex = (count == 0) ? maxRecords - 1 : count - 1;
     return readTriggerTime(lastIndex);
@@ -159,7 +154,6 @@ void setup() {
     rtc.begin();
     delay(1000);
   
-    // Налаштовуємо переривання
     rtc.writeSqwPinMode(DS3231_OFF);
     pinMode(interruptPin, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(interruptPin), wakeUp, FALLING);
@@ -174,11 +168,9 @@ void setup() {
     setNextAlarm();
     if (sleepMode) {
         Serial.println(">>> Sleep mode");
-        // входимо в сон одразу після налаштування
         enterSleep();
     } else {
         Serial.println(">>> Run mode");
-        // у Run-режимі не спимо, просто чекаємо переривання у loop()
     }
     alarmTriggered = false;
 }
@@ -215,13 +207,11 @@ void loop() {
         return;
     }
 
-    // обробляємо будильник
     alarmTriggered = false;
     Serial.println("Alarm! Firing solenoid...");
     activateSolenoid();
     setNextAlarm();
 
-    // для Sleep-режиму – знову спимо
     if (sleepMode) {
         enterSleep();
     }   
